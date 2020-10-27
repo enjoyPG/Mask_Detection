@@ -4,7 +4,7 @@
 ### 사용 모델
 1. facenet : 얼굴을 찾는 모델
   facenet = cv2.dnn.readNet('models/deploy.prototxt', 'models/res10_300x300_ssd_iter_140000.caffemodel')
-2. model : 마스크 검출 모델
+2. model : 마스크 검출 모델 **mobile net 기반의 전이학습으로 모델 제작**
   model = load_model('models/mask_detector.model')
 
 ### 실행하기
