@@ -30,15 +30,15 @@ while cap.isOpened():
     # facenet의 input으로 blob을 설정
     facenet.setInput(blob)
     # facenet 결과 추론, 얼굴 추출 결과가 dets의 저장
+    # 한 프레임 내의 여러 얼굴들을 받음
     dets = facenet.forward()
 
-    # 한 프레임 내의 여러 얼굴들을 받음
     result_img = img.copy()
 
     # 마스크를 찾용했는지 확인
     for i in range(dets.shape[2]):
 
-        # 검출한 결과가 신뢰도
+        # 얼굴을 찾았는지 확인 (신뢰도)
         confidence = dets[0, 0, i, 2]
         # 신뢰도를 0.5로 임계치 지정
         if confidence < 0.5:
@@ -54,12 +54,15 @@ while cap.isOpened():
         face = img[y1:y2, x1:x2]
 
         # 추출한 얼굴영역을 전처리
+        # mobileNet pretrained 모델에 넣을 얼굴사진 제작 전처리
         face_input = cv2.resize(face, dsize=(224, 224))
         face_input = cv2.cvtColor(face_input, cv2.COLOR_BGR2RGB)
+        # mobileNet preprocessing input값 만들기
         face_input = preprocess_input(face_input)
+        # (1,224,224,3)으로 만들기
         face_input = np.expand_dims(face_input, axis=0)
 
-        # 마스크 검출 모델로 결과값 return
+        # 마스크 검출 모델로 결과값 return (마스크 쓴 확률, 안 쓴 확률)
         mask, nomask = model.predict(face_input).squeeze()
 
         # 마스크를 꼈는지 안겼는지에 따라 라벨링해줌
