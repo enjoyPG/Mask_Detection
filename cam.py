@@ -25,11 +25,12 @@ while cap.isOpened():
 
     # 이미지 전처리
     # ref. https://www.pyimagesearch.com/2017/11/06/deep-learning-opencvs-blobfromimage-works/
+    # facenet에서 blob이미지(4차원)를 input값으로 사용하였기에 테스트 이미지도 blob으로 만들어줌
     blob = cv2.dnn.blobFromImage(img, scalefactor=1., size=(300, 300), mean=(104., 177., 123.))
 
-    # facenet의 input으로 blob을 설정
+    # facenet의 input으로 위에서 만든 blob을 사용함
     facenet.setInput(blob)
-    # facenet 결과 추론, 얼굴 추출 결과가 dets의 저장
+    # facenet 결과 추론, 얼굴 추출 결과가 detections의 저장
     # 한 프레임 내의 여러 얼굴들을 받음
     dets = facenet.forward()
 
@@ -38,13 +39,13 @@ while cap.isOpened():
     # 마스크를 찾용했는지 확인
     for i in range(dets.shape[2]):
 
-        # 얼굴을 찾았는지 확인 (신뢰도)
+        # 얼굴일 가능성 확인
         confidence = dets[0, 0, i, 2]
-        # 신뢰도를 0.5로 임계치 지정
+        # 얼굴일 가능성이 50%보다 낮을 경우 처리하지 않고 50%이상일 경우만 마스크 착용여부 확인
         if confidence < 0.5:
             continue
 
-        # 바운딩 박스를 구함
+        # 바운딩 박스
         x1 = int(dets[0, 0, i, 3] * w)
         y1 = int(dets[0, 0, i, 4] * h)
         x2 = int(dets[0, 0, i, 5] * w)
@@ -57,7 +58,7 @@ while cap.isOpened():
             # mobileNet pretrained 모델에 넣을 얼굴사진 제작 전처리
             face_input = cv2.resize(face, dsize=(224, 224))
             face_input = cv2.cvtColor(face_input, cv2.COLOR_BGR2RGB)
-            # mobileNet preprocessing input값 만들기
+            # tensorflow에서 제공하는 mobileNet preprocessing input값 만들기
             face_input = preprocess_input(face_input)
             # (1,224,224,3)으로 만들기
             face_input = np.expand_dims(face_input, axis=0)
