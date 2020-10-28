@@ -1,6 +1,13 @@
 # Mask_Detection
 아래 모델들을 사용해서 Mask_Detection 처리
 
+### Requirements
+1. tensorflow 2.2+
+2. python 3.6
+3. computer vision (pip install opencv-python)
+4. numpy
+
+
 ### 사용 모델
 1. facenet : 얼굴을 찾는 모델
   facenet = cv2.dnn.readNet('models/deploy.prototxt', 'models/res10_300x300_ssd_iter_140000.caffemodel')
