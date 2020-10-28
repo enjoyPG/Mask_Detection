@@ -52,34 +52,36 @@ while cap.isOpened():
 
         # 원본 이미지에서 얼굴영역 추출
         face = img[y1:y2, x1:x2]
+        try:
+            # 추출한 얼굴영역을 전처리
+            # mobileNet pretrained 모델에 넣을 얼굴사진 제작 전처리
+            face_input = cv2.resize(face, dsize=(224, 224))
+            face_input = cv2.cvtColor(face_input, cv2.COLOR_BGR2RGB)
+            # mobileNet preprocessing input값 만들기
+            face_input = preprocess_input(face_input)
+            # (1,224,224,3)으로 만들기
+            face_input = np.expand_dims(face_input, axis=0)
 
-        # 추출한 얼굴영역을 전처리
-        # mobileNet pretrained 모델에 넣을 얼굴사진 제작 전처리
-        face_input = cv2.resize(face, dsize=(224, 224))
-        face_input = cv2.cvtColor(face_input, cv2.COLOR_BGR2RGB)
-        # mobileNet preprocessing input값 만들기
-        face_input = preprocess_input(face_input)
-        # (1,224,224,3)으로 만들기
-        face_input = np.expand_dims(face_input, axis=0)
+            # 마스크 검출 모델로 결과값 return (마스크 쓴 확률, 안 쓴 확률)
+            mask, nomask = model.predict(face_input).squeeze()
 
-        # 마스크 검출 모델로 결과값 return (마스크 쓴 확률, 안 쓴 확률)
-        mask, nomask = model.predict(face_input).squeeze()
+            # 마스크를 꼈는지 안겼는지에 따라 라벨링해줌
+            if mask > nomask:
+                color = (0, 255, 0)
+                label = 'Mask %d%%' % (mask * 100)
+            else:
+                color = (0, 0, 255)
+                label = 'No Mask %d%%' % (nomask * 100)
+                frequency = 2500  # Set Frequency To 2500 Hertz
+                duration = 50  # Set Duration To 1000 ms == 1 second
+                winsound.Beep(frequency, duration)
 
-        # 마스크를 꼈는지 안겼는지에 따라 라벨링해줌
-        if mask > nomask:
-            color = (0, 255, 0)
-            label = 'Mask %d%%' % (mask * 100)
-        else:
-            color = (0, 0, 255)
-            label = 'No Mask %d%%' % (nomask * 100)
-            frequency = 2500  # Set Frequency To 2500 Hertz
-            duration = 50  # Set Duration To 1000 ms == 1 second
-            winsound.Beep(frequency, duration)
-
-        # 화면에 얼굴부분과 마스크 유무를 출력해해줌
-        cv2.rectangle(result_img, pt1=(x1, y1), pt2=(x2, y2), thickness=2, color=color, lineType=cv2.LINE_AA)
-        cv2.putText(result_img, text=label, org=(x1, y1 - 10), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.8,
-                    color=color, thickness=2, lineType=cv2.LINE_AA)
+            # 화면에 얼굴부분과 마스크 유무를 출력해해줌
+            cv2.rectangle(result_img, pt1=(x1, y1), pt2=(x2, y2), thickness=2, color=color, lineType=cv2.LINE_AA)
+            cv2.putText(result_img, text=label, org=(x1, y1 - 10), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.8,
+                        color=color, thickness=2, lineType=cv2.LINE_AA)
+        except Exception as e:
+            print(str(e))
 
     cv2.imshow('img',result_img)
 
